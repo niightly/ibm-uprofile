@@ -55,9 +55,10 @@ class TestScript {
 		}
 
 		//The numbers were changed to 0 to protect the IBM's employees
+    //Also these are just examples so you can see the usability in different ways
 		let promises = [
 			UProfile.get("000000000000"),
-			UProfile.get("000000000000"),
+			UProfile.get("000000000000", "Default"),
 			UProfile.get("000000000000", tmpTemplate1),
 			UProfile.get("000000000000", tmpTemplate2),
 		]
@@ -82,12 +83,13 @@ As you see below this will be the result:
     ]
   },
   {
-  	"uid": <String>,
-  	"name": <String>,
-    "location": [
-      <String>,
-      <String>
-    ]
+    "modifiedDate": 1481803153699,
+    "userId": <String>,
+    "typeId": <String>,
+    "active": <Boolean>,
+    .
+    .
+    . //her will be alot of more properties, check section About IBM-Unified-Profile API\Response
   },
   {
     "name": <String>
