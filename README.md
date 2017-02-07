@@ -13,7 +13,7 @@ Run `npm i ibm-uprofile --save`
 ### Documentation
 Below follows the details about methods available in this module
 
-#### ErrorHandler.setDefault(template)
+#### UProfile.setDefault(template)
 This method sets a default template to be used across everytime you need to retrieve the information from the unified profile.
 
 | Params     | Type   | Description |
@@ -21,7 +21,7 @@ This method sets a default template to be used across everytime you need to retr
 | `template` | Object | **Required:** Template to be used when retrieve the results from ibm unified profile API
 
 
-#### ErrorHandler.get(userUID, template)
+#### UProfile.get(userUID, template)
 This method will retrieve the profile information from an specific user.
 
 | Params       | Type   | Description |
