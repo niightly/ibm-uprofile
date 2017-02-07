@@ -1,0 +1,27 @@
+{
+  "name": "ibm-uprofile",
+  "version": "1.0.0",
+  "description": "Allow to retrieve information from someone in ibm unified profile API",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/niightly/ibm-uprofile.git"
+  },
+  "keywords": [
+    "ibm",
+    "unified-profile",
+    "profile-ibm"
+  ],
+  "author": "niightly <tggsilva@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/niightly/ibm-uprofile/issues"
+  },
+  "homepage": "https://github.com/niightly/ibm-uprofile#readme",
+  "dependencies": {
+    "request": "^2.79.0"
+  }
+}
