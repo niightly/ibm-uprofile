@@ -35,7 +35,7 @@ This method will retrieve the profile information from an specific user.
 ### How to Use
 Check the example below to get a better understanding of the module
 ```javascript
-const UProfile = apprequire('ibm-uprofile')
+const UProfile = require('ibm-uprofile')
 const userTemplate = {
 	uid: "userId",
 	name: "nameDisplay",
