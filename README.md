@@ -10,107 +10,218 @@ To use this module you just need to import it to your project and have a running
 
 Run `npm i ibm-uprofile --save`
 
-### Documentation
-Below follows the details about methods available in this module
+### Test
+To run the test suite, first install the dependencies, run npm test, then in another tap of your terminal access the APIs
 
-#### UProfile.setDefault(template)
-This method sets a default template to be used across everytime you need to retrieve the information from the unified profile.
+```javascript
+npm install
+npm test
+curl <API>
+```
 
-| Params     | Type   | Description |
-| --------   | ------ | -----------
-| `template` | Object | **Required:** Template to be used when retrieve the results from ibm unified profile API
-
-
-#### UProfile.get(userUID, template)
-This method will retrieve the profile information from an specific user.
-
-| Params       | Type   | Description |
-| ------------ | ------ | ---
-| `userUID`    | String | **Required:** the user UID
-| `template`   | Object/String | *Optional:* Template to be used when retrieve the results from ibm unified profile API<br />*You can also use the string __"Default"__ to force the module to ignore a default template if it exists.*
-
->**PS:** The "Default" can be in any case, since the module for it to be on lowercase.<br />(e.g.: DEFAULT, Default, default, DeFAuLT, etc..)
+##### API List
+Below follow the list of samples for testing
+* GET `http://localhost:3000/:uid`
+* GET `http://localhost:3000/samples/:uid`
+* GET `http://localhost:3000/samples/cn/:uid`
+* GET `http://localhost:3000/samples/default/:uid`
 
 
 ### How to Use
-Check the example below to get a better understanding of the module
-```javascript
-const UProfile = require('ibm-uprofile')
-const userTemplate = {
-	uid: "userId",
-	name: "nameDisplay",
-	location: "address.business.address"
-}
+Check the examples below to get a better understanding of the module and see what fits you better.
 
-UProfile.setDefault(userTemplate)
+###### Example 1 - Default
+Here I will show you how to get all properties from the unified profile
+
+```javascript
+const UProfile = require('ibm-uprofile')()
 
 class TestScript {
-	index(req, res) {
-		let tmpTemplate1 = {
-			name: "nameDisplay"
-		}
-		let tmpTemplate2 = {
-			name: "nameDisplay",
-			location: "address.business"
-		}
-
-		//The numbers were changed to 0 to protect the IBM's employees
-    //Also these are just examples so you can see the usability in different ways
-		let promises = [
-			UProfile.get("000000000000"),
-			UProfile.get("000000000000", "Default"),
-			UProfile.get("000000000000", tmpTemplate1),
-			UProfile.get("000000000000", tmpTemplate2),
-		]
-
-		Promise.all(promises)
-		.then(results => res.status(200).json(results))
-		.catch(err => res.status(500).json(err))
-	}
+  index(req, res) {
+    UProfile("000000000000000")
+    .then(results => res.status(200).json(results))
+    .catch(err => res.status(500).json(err))
+  }
 }
 
 ```
 
-As you see below this will be the result:
+###### Example 2 - Setting a different default template
+Here I will show how to set a new template and use it as default
+
 ```javascript
-[
-  {
-  	"uid": <String>,
-    "name": <String>,
-    "location": [
-      <String>,
-      <String>
-    ]
-  },
-  {
-    "modifiedDate": 1481803153699,
-    "userId": <String>,
-    "typeId": <String>,
-    "active": <Boolean>,
-    .
-    .
-    . //her will be alot of more properties, check section About IBM-Unified-Profile API\Response
-  },
-  {
-    "name": <String>
-  },
-  {
-    "name": <String>,
-    "location": {
-      "zip": <String>,
-      "locality": <String>,
-      "state": <String>,
-      "country": <String>,
-      "address": [
-        <String>,
-        <String>
-      ],
-      "location": <String>,
-      "stateCo": <String>
-    }
+const UProfile = require('ibm-uprofile')({
+  uid: "userId",
+  name: "nameDisplay",
+  country: "address.business.country",
+  email: "mail.0"
+})
+
+class TestScript {
+  index(req, res) {
+    UProfile("000000000000000")
+    .then(results => res.status(200).json(results))
+    .catch(err => res.status(500).json(err))
   }
-]
+}
+
 ```
+
+###### Example 3 - Setting a template on the request
+Here I will show how to set a new template only when you execute the search
+
+```javascript
+const UProfile = require('ibm-uprofile')()
+
+class TestScript {
+  index(req, res) {
+    let customTemplate = {
+      uid: "userId",
+      name: "nameDisplay",
+    }
+
+    UProfile("000000000000000", customTemplate)
+    .then(results => res.status(200).json(results))
+    .catch(err => res.status(500).json(err))
+  }
+}
+
+```
+
+###### Example 4 - Setting a template on the request and using a default template
+Here I will show how to set a new template as default and make 2 search with different templates
+```javascript
+const UProfile = require('ibm-uprofile')({
+  uid: "userId",
+  name: "nameDisplay",
+  country: "address.business.country",
+  email: "mail.0"
+})
+
+class TestScript {
+  index(req, res) {
+    let customTemplate = {
+      uid: "userId",
+      name: "nameDisplay",
+    }
+
+    var promises = [
+      UProfile("000000000000000")
+      UProfile("000000000000000", customTemplate)
+    ]
+
+    Promise.all(promises)
+    .then(results => res.status(200).json(results))
+    .catch(err => res.status(500).json(err))
+  }
+}
+
+```
+
+###### Example 4 - Force to ignore a custom default template
+Here I will show how to ignore a custom template previously specified
+```javascript
+const UProfile = require('ibm-uprofile')({
+  uid: "userId",
+  name: "nameDisplay",
+  country: "address.business.country",
+  email: "mail.0"
+})
+
+class TestScript {
+  index(req, res) {
+    UProfile("000000000000000", "default")
+    .then(results => res.status(200).json(results))
+    .catch(err => res.status(500).json(err))
+  }
+}
+
+```
+
+## Custom Templates
+Basically there is no restriction about the properties you choose (besides javascript restrictions of course). The restriction is related with the values of these properties, bellow follows the list of the allowed values:
+
+Properties  | Type
+--- | ---
+modifiedDate  |  Number
+userId  |  String
+typeId  |  String
+active  |  Boolean
+address | Object
+address.business  | Object
+address.business.zip  |  String
+address.business.locality |  String
+address.business.state  |  String
+address.business.country  |  String
+address.business.address  |  Array
+address.business.location |  String
+address.business.stateCo  |  String
+c |  String
+dn  |  String
+callupName  |  String
+co  |  String
+cn  |  Array
+costCenter  |  String
+courtesyTitle |  String
+dept  | Object
+dept.code |  String
+div |  String
+employeeCountryCode |  String
+notesMailDomain |  String
+employeeType  | Object
+employeeType.code |  String
+employeeType.isManager  |  Boolean
+employeeType.isEmployee |  Boolean
+employeeType.title  |  String
+glTeamLead  |  String
+hrActive  |  String
+hrOrganizationCode  |  String
+legalEntity | Object
+legalEntity.code  |  String
+legalEntity.name  |  String
+legalEntity.groupCode |  String
+legalEntity.groupId |  String
+mail  |  Array
+manager |  String
+managerPSC  |  String
+name. | Object
+name.first  |  String
+name.last |  String
+nameFull  |  String
+notesEmail  |  String
+notesShortName  |  String
+org.  | Object
+org.code  |  String
+org.group |  String
+org.unit  |  String
+org.title |  String
+preferredIdentity |  String
+psc |  String
+role  |  String
+serial  |  String
+telephone | Object
+telephone.office  |  String
+telephone.mobile  |  String
+telephone.tieline |  String
+telephone.itn |  String
+telephone.alternate |  String
+timeZone  |  String
+timeZoneCode  |  String
+uid |  String
+workLocation  | Object
+workLocation.code |  String
+workLocation.building |  String
+workLocation.floor  |  String
+workLocation.office |  String
+imt |  String
+iot |  String
+languages |  Array
+preferredContactMethod  |  String
+nameDisplay |  String
+alternateLastName |  String
+
+> **Importante:** All properties of type `Array` allow you to define the position you want to return, to do that you just need to add `.Index` at the end. *(e.g.: `mail.0` to retrieve the position 0 of the array) 
+> **PS:** it won't add any value if the index does not exist.
 
 ## About IBM-Unified-Profile API
 I'm didn't found any documentation about the unified profile, so here is what I have so far:<br /><br />
@@ -119,7 +230,7 @@ I'm didn't found any documentation about the unified profile, so here is what I 
 **Response**<br />
 ```javascript
 {
-    "modifiedDate": 1481803153699,
+    "modifiedDate": <Number>,
     "userId": <String>,
     "typeId": <String>,
     "active": <Boolean>,
@@ -225,13 +336,14 @@ Follow the list of errors that should be present if something went wrong. For al
 
 ```
 
-| Code   | Name            | Message                             | Description
-| ------ | --------------- | ----------------------------------- | ---
-| 400    | InvalidTemplate | INVALID_TEMPLATE_TYPE               | Template is not Object / Array / String `"Default"`
-| 400    | InvalidTemplate | INVALID_PROPERTY_ `PROPERTY_NAME`   | A property invalid characters (allowed only Alphanumeric and dots)
+| Code    | Name            | Message                             | Description
+| ------  | --------------- | ----------------------------------- | ---
+| 400     | InvalidTemplate | INVALID_TEMPLATE_TYPE               | Template is not Object / Array / String `"Default"`
+| 400     | InvalidTemplate | INVALID_PROPERTY_ `PROPERTY_NAME`   | A property invalid characters (allowed only Alphanumeric and dots)
 | `<500>` | ServerError     | REQUEST_ERROR                       | For some reason the http request could not be completed
-| 404    | ServerError     | USER_NOT_FOUND                      | The UID used to search on the API was not found
-| 500    | Unknown         | SOMETHING_WENT_WRONG                | I have no clue... Check the stack and if needed open an issue.
+| 500     | ServerError     | NOT_IN_THE_VPN                      | You are trying to reach the bluepages server but you aren't in the VPN
+| 404     | ServerError     | USER_NOT_FOUND                      | The UID used to search on the API was not found
+| 500     | Unknown         | SOMETHING_WENT_WRONG                | I have no clue... Check the stack and if needed open an issue.
 
 
 ## Authors
