@@ -220,8 +220,8 @@ preferredContactMethod  |  String
 nameDisplay |  String
 alternateLastName |  String
 
-> **Importante:** All properties of type `Array` allow you to define the position you want to return, to do that you just need to add `.Index` at the end. *(e.g.: `mail.0` to retrieve the position 0 of the array) 
-> **PS:** it won't add any value if the index does not exist.
+> **Importante:** All properties of type `Array` allow you to define the position you want to return, to do that you just need to add `.Index` at the end. *(e.g.: `mail.0` to retrieve the position 0 of the array)* <br />
+**PS:** it won't add any value if the index does not exist.
 
 ## About IBM-Unified-Profile API
 I'm didn't found any documentation about the unified profile, so here is what I have so far:<br /><br />
