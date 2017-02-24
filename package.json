@@ -1,6 +1,6 @@
 {
   "name": "ibm-uprofile",
-  "version": "1.0.4",
+  "version": "1.0.0",
   "description": "Allow to retrieve information from someone in ibm unified profile API",
   "main": "index.js",
   "scripts": {
