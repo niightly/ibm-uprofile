@@ -4,6 +4,7 @@ var self
 class UProfile {
 	constructor(){
 		this.URL = 'https://w3-services1.w3-969.ibm.com/myw3/unified-profile/v1/docs/instances/master?userId='
+		this.queryURL = 'https://w3-services1.w3-969.ibm.com/myw3/unified-profile/v1/search/user?searchConfig=optimized_search&timeout=20000&threshold=0&rows=1&query='
 		this.headers = ['modifiedDate', 'userId', 'typeId', 'active']
 		this.template = undefined
 		this.errorMsg = ""
@@ -27,7 +28,9 @@ class UProfile {
 				let lookup = (!userTemplate) ? self.template : userTemplate
 				if (!self._isValid(lookup)) { return reject(self.errorMsg) }
 
-				request.get({url: self.URL + userUID, json: true}, function(err, response, body) {
+				let tmpURL = (userUID.includes("@")) ? this.queryURL : this.URL
+
+				request.get({url:tmpURL + userUID, json: true}, function(err, response, body) {
 					if (err || !(response && response.statusCode == 200)) {
 						if (response && response.statusCode) {
 							return reject({ code: response.statusCode, name: "ServerError", message: "REQUEST_ERROR", stack: err })
