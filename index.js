@@ -28,7 +28,7 @@ class UProfile {
 				let lookup = (!userTemplate) ? self.template : userTemplate
 				if (!self._isValid(lookup)) { return reject(self.errorMsg) }
 
-				let tmpURL = (userUID.includes("@")) ? this.queryURL : this.URL
+				let tmpURL = (userUID.includes("@")) ? self.queryURL : self.URL
 
 				request.get({url:tmpURL + userUID, json: true}, function(err, response, body) {
 					if (err || !(response && response.statusCode == 200)) {
