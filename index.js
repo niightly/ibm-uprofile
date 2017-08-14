@@ -4,7 +4,7 @@ var self
 class UProfile {
 	constructor(){
 		this.URL = 'https://w3-services1.w3-969.ibm.com/myw3/unified-profile/v1/docs/instances/master?userId='
-		this.queryURL = 'https://w3-services1.w3-969.ibm.com/myw3/unified-profile/v1/search/user?searchConfig=optimized_search&timeout=20000&threshold=0&rows=1&query='
+		this.queryURL = 'https://w3-services1.w3-969.ibm.com/myw3/unified-profile/v1/docs/instances/masterByEmail?email='
 		this.headers = ['modifiedDate', 'userId', 'typeId', 'active']
 		this.template = undefined
 		this.errorMsg = ""
@@ -33,14 +33,14 @@ class UProfile {
 
 				let tmpURL = (userUID.includes("@")) ? self.queryURL : self.URL
 
-				if (self.debug) { console.log('QUERY', tmpURL ) }
+				if (self.debug) { console.log('QUERY', tmpURL + userUID ) }
 
 				request.get({url:tmpURL + userUID, json: true}, function(err, response, body) {
 					if (self.debug) { 
 						console.log('Request executed')
 						console.log('STATUS: ', response.statusCode)
 					}
-
+					
 					if (err || !(response && response.statusCode == 200)) {
 						if (self.debug) {
 							console.log('ERROR: ', response.statusCode)
@@ -56,8 +56,7 @@ class UProfile {
 							return reject({ code: 500, name: "ServerError", message: message, stack: err })
 						}
 					} else if (!body || !body.content || !body.content.identity_info) { 
-						if (self.debug) { console.log('ERROR BODY') }
-						return reject({ code: 404, name: "ServerError", message: "ENTRY_NOT_FOUND", stack: JSON.stringify(body) }) }
+						return reject({ code: 404, name: "ServerError", message: "ENTRY_NOT_FOUND", stack: body }) }
 
 					let user = {}
 					if (lookup && typeof lookup !== "string") {
