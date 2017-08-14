@@ -36,6 +36,11 @@ class UProfile {
 				if (self.debug) { console.log('QUERY', tmpURL ) }
 
 				request.get({url:tmpURL + userUID, json: true}, function(err, response, body) {
+					if (self.debug) { 
+						console.log('Request executed')
+						console.log('STATUS: ', response.statusCode)
+					}
+
 					if (err || !(response && response.statusCode == 200)) {
 						if (self.debug) {
 							console.log('ERROR: ', response.statusCode)
@@ -51,7 +56,8 @@ class UProfile {
 							return reject({ code: 500, name: "ServerError", message: message, stack: err })
 						}
 					} else if (!body || !body.content || !body.content.identity_info) { 
-						return reject({ code: 404, name: "ServerError", message: "ENTRY_NOT_FOUND", stack: body }) }
+						if (self.debug) { console.log('ERROR BODY') }
+						return reject({ code: 404, name: "ServerError", message: "ENTRY_NOT_FOUND", stack: JSON.stringify(body) }) }
 
 					let user = {}
 					if (lookup && typeof lookup !== "string") {
