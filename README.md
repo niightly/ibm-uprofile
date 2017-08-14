@@ -34,7 +34,7 @@ Check the examples below to get a better understanding of the module and see wha
 Here I will show you how to get all properties from the unified profile
 
 ```javascript
-const UProfile = require('ibm-uprofile')()
+const UProfile = require('ibm-uprofile')(undefined, debug) // you can use debug if you want to see prints on terminal
 
 class TestScript {
   index(req, res) {
@@ -55,7 +55,7 @@ const UProfile = require('ibm-uprofile')({
   name: "nameDisplay",
   country: "address.business.country",
   email: "mail.0"
-})
+}, debug)
 
 class TestScript {
   index(req, res) {
