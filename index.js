@@ -8,10 +8,13 @@ class UProfile {
 		this.headers = ['modifiedDate', 'userId', 'typeId', 'active']
 		this.template = undefined
 		this.errorMsg = ""
+		this.debug = false
 		self = this //to keep reference of the instantiated class and still dont need to call methods
 	}
 
-	setDefault(userTemplate){
+	setDefault(userTemplate, debug){
+		if (debug) { this.debug = debug }
+
 		if (!this._isValid(userTemplate)) {
 			let warningMsg = '\n' + '#'.repeat(23) + ' WARNING ' + '#'.repeat(23) + '\n'
 			console.log('#'.repeat(55) + warningMsg)
@@ -30,8 +33,16 @@ class UProfile {
 
 				let tmpURL = (userUID.includes("@")) ? self.queryURL : self.URL
 
+				if (this.debug) { console.log('QUERY', tmpURL ) }
+
 				request.get({url:tmpURL + userUID, json: true}, function(err, response, body) {
 					if (err || !(response && response.statusCode == 200)) {
+						if (this.debug) {
+							console.log('ERROR: ', response.statusCode)
+							console.log(err)
+							console.log('------------------')
+						}
+
 						if (response && response.statusCode) {
 							return reject({ code: response.statusCode, name: "ServerError", message: "REQUEST_ERROR", stack: err })
 						} else {
@@ -58,8 +69,11 @@ class UProfile {
 							}
 						}
 
+						if (this.debug) { console.log('Success') }
 						resolve(user)
 					} else {
+
+						if (this.debug) { console.log('Success, but lookup is string') }
 						resolve(body)
 					}
 				})
@@ -119,8 +133,8 @@ class UProfile {
  * Allow to return the module instantiated without using new when require the module.
  */
 const instance = new UProfile()
-function instantiate(attributes) {
-  instance.setDefault(attributes)
+function instantiate(attributes, debug) {
+  instance.setDefault(attributes, debug)
   return instance.get
 }
 
