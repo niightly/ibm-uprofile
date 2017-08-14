@@ -12,7 +12,7 @@ class UProfile {
 		self = this //to keep reference of the instantiated class and still dont need to call methods
 	}
 
-	setDefault(userTemplate, debug){
+	setDefault(userTemplate, debug = false){
 		if (debug) { this.debug = debug }
 
 		if (!this._isValid(userTemplate)) {
@@ -33,11 +33,11 @@ class UProfile {
 
 				let tmpURL = (userUID.includes("@")) ? self.queryURL : self.URL
 
-				if (this.debug) { console.log('QUERY', tmpURL ) }
+				if (self.debug) { console.log('QUERY', tmpURL ) }
 
 				request.get({url:tmpURL + userUID, json: true}, function(err, response, body) {
 					if (err || !(response && response.statusCode == 200)) {
-						if (this.debug) {
+						if (self.debug) {
 							console.log('ERROR: ', response.statusCode)
 							console.log(err)
 							console.log('------------------')
@@ -69,11 +69,11 @@ class UProfile {
 							}
 						}
 
-						if (this.debug) { console.log('Success') }
+						if (self.debug) { console.log('Success') }
 						resolve(user)
 					} else {
 
-						if (this.debug) { console.log('Success, but lookup is string') }
+						if (self.debug) { console.log('Success, but lookup is string') }
 						resolve(body)
 					}
 				})
