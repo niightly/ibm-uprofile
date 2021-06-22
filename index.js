@@ -1,133 +1,197 @@
-const request = require('request')
+const axios = require('axios')
 var self
 
 class UProfile {
-	constructor(){
-		this.URL = 'https://w3-services1.w3-969.ibm.com/myw3/unified-profile/v1/docs/instances/master?userId='
-		this.queryURL = 'https://w3-services1.w3-969.ibm.com/myw3/unified-profile/v1/docs/instances/masterByEmail?email='
-		this.headers = ['modifiedDate', 'userId', 'typeId', 'active']
-		this.template = undefined
-		this.errorMsg = ""
-		this.debug = false
-		self = this //to keep reference of the instantiated class and still dont need to call methods
-	}
-
-	setDefault(userTemplate, debug = false){
-		if (debug) { this.debug = debug }
-
-		if (!this._isValid(userTemplate)) {
-			let warningMsg = '\n' + '#'.repeat(23) + ' WARNING ' + '#'.repeat(23) + '\n'
-			console.log('#'.repeat(55) + warningMsg)
-			console.log(this.errorMsg);
-			console.log(warningMsg + '#'.repeat(55) + '\n')
-			throw new Error(this.errorMsg)
+	constructor(debug = false) {
+		this.urls = {
+			team: 'https://unified-profile-api.us-south-k8s.intranet.ibm.com/v3/profiles/{USER}/teamResolved',
+			extended: 'https://unified-profile-api.us-south-k8s.intranet.ibm.com/v3/profiles/{USER}/profile_extended',
+			profile: 'https://unified-profile-api.us-south-k8s.intranet.ibm.com/v3/profiles/{USER}',
+			all: 'https://unified-profile-api.us-south-k8s.intranet.ibm.com/v3/profiles/{USER}/profile_combined',
 		}
-		this.template = userTemplate
+
+		this.options = {}
+		this.debug = debug
 	}
 
-	get(userUID, userTemplate) {
-		return new Promise((resolve,reject) => {
-			try {
-				let lookup = (!userTemplate) ? self.template : userTemplate
-				if (!self._isValid(lookup)) { return reject(self.errorMsg) }
+	setDebug(debug) {
+		this.debug = debug
+		if (!this.debug) { console.log('BLUEPAGES UPROFILE - ENABLED'); }
+	}
 
-				let tmpURL = (userUID.includes("@")) ? self.queryURL : self.URL
+	setOptions(options) {
+		if (Object.keys(options).length === 0) { return }
+		this.options = options
+	}
 
-				if (self.debug) { console.log('QUERY', tmpURL + userUID ) }
+	_uri(type, query) {
+		if (type === 'profile') {
+			if (!Array.isArray(query)) { query = [query] }
+			query = query.join(',')
+		}
 
-				request.get({url:tmpURL + userUID, json: true}, function(err, response, body) {
-					if (self.debug) { 
-						console.log('Request executed')
-						console.log('STATUS: ', response.statusCode)
-					}
-					
-					if (err || !(response && response.statusCode == 200)) {
-						if (self.debug) {
-							console.log('ERROR: ', response.statusCode)
-							console.log(err)
-							console.log('------------------')
-						}
+		return this.urls[type].replace('{USER}', query)
+	}
 
-						if (response && response.statusCode) {
-							return reject({ code: response.statusCode, name: "ServerError", message: "REQUEST_ERROR", stack: err })
-						} else {
-							let message = "REQUEST_ERROR"
-							if (err.code === "ENOTFOUND") { message = "NOT_IN_THE_VPN" }
-							return reject({ code: 500, name: "ServerError", message: message, stack: err })
-						}
-					} else if (!body || !body.content || !body.content.identity_info) { 
-						return reject({ code: 404, name: "ServerError", message: "ENTRY_NOT_FOUND", stack: body }) }
+	_display_template_error() {
+		if (!this.debug) { return }
 
-					let user = {}
-					if (lookup && typeof lookup !== "string") {
-						let uContent = self._getByStringKey(body, 'content.identity_info')
-						delete body.content
-						let uHeader = body
+		let warningMsg = '\n' + '#'.repeat(23) + ' WARNING ' + '#'.repeat(23) + '\n'
 
-						uContent.nameDisplay = (!uContent.nameDisplay) ? uContent.nameFull : uContent.nameDisplay
+		console.log('#'.repeat(55) + warningMsg)
+		console.log(this.errorMsg);
+		console.log(warningMsg + '#'.repeat(55) + '\n')
+	}
 
-						for (let property in lookup) {
-							if (self.headers.indexOf(lookup[property]) > 0) {
-								user[property] = self._getByStringKey(uHeader, lookup[property])
-							} else {
-								user[property] = self._getByStringKey(uContent, lookup[property])
-							}
-						}
+	_display_response_error(type, users, response) {
+		if (!this.debug) { return }
 
-						if (self.debug) { console.log('Success') }
-						resolve(user)
-					} else {
+		'\n' + '#'.repeat(23) + ' REQUEST DEBUG ' + '#'.repeat(23) + '\n'
 
-						if (self.debug) { console.log('Success, but lookup is string') }
-						resolve(body)
-					}
-				})
-			} catch (e) {
-				reject({
-					code: 500,
-					name: "Unknown",
-					message: "SOMENTHING_WENT_WRONG",
-					stack: e.stack 
-				})
+		console.log('QUERY', this._uri(type, users))
+		console.log('STATUS: ', response.status)
+		console.log('STATUSTEXT: ', response.statusText)
+		if (response.status !== 200) { console.log('BODY: ', response.data) }
+
+		'\n' + '#'.repeat(23) + ' REQUEST DEBUG ' + '#'.repeat(23) + '\n'
+	}
+
+	_response(users, response) {
+		if (users.includes(',')) { return response || [] }
+		return response
+	}
+
+	async team(user, options = {}) {
+		if (Array.isArray(user)) { throw new Error('The user cannot be an array, it can only have 1 user per query') }
+		if (user.includes("@")) { throw new Error('The user must be an employee serial number') }
+		this.setOptions(options)
+
+		try {
+			const body = await this._fetch('team', user)
+
+			if (this.options.headers) { return body }
+			return body.content || { error: `User not found for ${user}` }
+		} catch (err) {
+			throw err
+		}
+	}
+
+	async skills(user, options = {}) {
+		if (Array.isArray(user)) { throw new Error('The user cannot be an array, it can only have 1 user per query') }
+		if (user.includes("@")) { throw new Error('The user must be an employee serial number') }
+		this.setOptions(options)
+
+		try {
+			const body = await this._fetch('extended', user)
+
+			if (this.options.headers) { return body }
+			return body.content || { error: `User not found for ${user}` }
+		} catch (err) {
+			throw err
+		}
+	}
+
+	async all(user, options = {}) {
+		if (Array.isArray(user)) { throw new Error('The user cannot be an array, it can only have 1 user per query') }
+		if (user.includes("@")) { throw new Error('The user must be an employee serial number') }
+		this.setOptions(options)
+
+		try {
+			const body = await this._fetch('all', user)
+
+			if (this.options.headers) { return body }
+			return body.content || { error: `User not found for ${user}` }
+		} catch (err) {
+			throw err
+		}
+	}
+
+	async info(user, options = {}) {
+		this.setOptions(options)
+
+		try {
+			let body
+			if (this.debug) { console.log('QUERY TOTAL (chars):', encodeURI(this._uri('profile', user)).length) }
+			if (Array.isArray(user) && encodeURI(this._uri('profile', user)).length > 6000) {
+				body = await this._multi_fetch(user)
+			} else {
+				body = await this._fetch('profile', user)
 			}
-		})
+
+			if (this.options.headers) { return (Array.isArray(user)) ? body : body[0] }
+			return (Array.isArray(user)) ? body.map(item => item.content) : body[0].content
+		} catch (err) {
+			throw err
+		}
 	}
 
-	_getByStringKey(obj, key) {
-		let array = key.split('.');
-		for (let property of array) {
+	_chunks(users) {
+		let chunks = [[]]
+		users.forEach((u, i) => {
+			chunks[chunks.length-1].push([u])
+			if (encodeURI(this._uri('profile', chunks[chunks.length-1])).length > 5000) {
+				chunks.push([])
+			}
+		});
 
-			if (property in obj) { obj = obj[property] }
-			else { return; }
+		return chunks
+	}
+
+	async _multi_fetch(users) {
+		try {
+			let response = await Promise.allSettled(this._chunks(users).map((chunk, i) => {
+				if (this.debug) { console.log(`CHUNK ${i + 1} TOTAL (chars):`, encodeURI(this._uri('profile', chunk)).length) }
+				return axios.get(this._uri('profile', chunk), { validateStatus: (status) => status < 500 })
+			}))
+
+			response = response.map(r => r.value.data)
+			response = [].concat.apply([], response)
+
+			return this._response(users, response)
+		} catch (err) {
+			console.log(err);
+			throw err
 		}
+	}
 
-		return obj;
+	async _fetch(type, users) {
+		try {
+			const response = await axios.get(this._uri(type, users), { validateStatus: (status) => status < 500 })
+			this._display_response_error(type, users, response)
+
+			if (response.status === 404 && !this.options.ignore_404_error) { throw { code: 404, name: "Entry Not Found", message: "ENTRY_NOT_FOUND", stack: response.data } }
+			return this._response(users, response.data)
+		} catch (err) {
+			throw err
+		}
 	}
 
 	_isValid(obj) {
 		if (!obj) { return true }
 
 		if (typeof obj === "string" && obj.toLowerCase()==="default") { return true }
-		else if (typeof obj !== 'object' || Array.isArray(obj)) { 
-			this.errorMsg = { 
-				code: 400, 
-				name: "InvalidTemplate", 
-				message: "INVALID_TEMPLATE_TYPE", 
-				stack: (Array.isArray(obj)) ? "array" : typeof obj 
+		else if (typeof obj !== 'object' || Array.isArray(obj)) {
+			this.errorMsg = {
+				code: 400,
+				name: "InvalidTemplate",
+				message: "INVALID_TEMPLATE_TYPE",
+				stack: (Array.isArray(obj)) ? "array" : typeof obj
 			}
-			return false 
+
+			return false
 		}
 
 		let isInvalid = new RegExp(/[^a-zA-Z0-9\.]/)
 		for (let key in obj) {
 			if (isInvalid.test(obj[key])) {
-				this.errorMsg = { 
-					code: 400, 
-					name: "InvalidTemplate", 
+				this.errorMsg = {
+					code: 400,
+					name: "InvalidTemplate",
 					message: "INVALID_PROPERTY_" + key.toUpperCase(),
 					stack: "Please use only Alphanumeric characters or dots. Invalid entry: " + obj[key]
 				}
-				return false 
+
+				return false
 			}
 		}
 		return true
@@ -137,10 +201,12 @@ class UProfile {
 /**
  * Allow to return the module instantiated without using new when require the module.
  */
-const instance = new UProfile()
-function instantiate(attributes, debug) {
-  instance.setDefault(attributes, debug)
+
+
+function instantiate(attributes, debug = false) {
+  // instance.setDefault(attributes, debug)
+	instance.setDebug(debug)
   return instance.get
 }
 
-module.exports = instantiate
+module.exports = (debug = false) => new UProfile(debug)

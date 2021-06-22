@@ -1,6 +1,6 @@
 # IBM - Unified Profile
 
-This module Allow the user to retrieve information from the IBM unified profile program
+This module Allow the user to retrieve information from the IBM unified profile program.
 
 ## Getting Started
 
@@ -10,7 +10,8 @@ To use this module you just need to import it to your project and have a running
 
 Run `npm i ibm-uprofile --save`
 
-### Test
+### Testing
+
 To run the test suite, first install the dependencies, run npm test, then in another tap of your terminal access the APIs
 
 ```javascript
@@ -19,337 +20,492 @@ npm test
 curl <API>
 ```
 
-##### API List
+#### API List
+
 Below follow the list of samples for testing
-* GET `http://localhost:3000/:uid`
-* GET `http://localhost:3000/samples/:uid`
-* GET `http://localhost:3000/samples/cn/:uid`
-* GET `http://localhost:3000/samples/default/:uid`
+* GET `http://localhost:3000/:uid/info`
+* GET `http://localhost:3000/:uid/skill`
+* GET `http://localhost:3000/:uid/team`
+* POST `http://localhost:3000/users`
 
+##### Body UIDs
 
-### How to Use
-Check the examples below to get a better understanding of the module and see what fits you better.
-
-###### Example 1 - Default
-Here I will show you how to get all properties from the unified profile
-
-```javascript
-const UProfile = require('ibm-uprofile')(undefined, debug) // you can use debug if you want to see prints on terminal
-
-class TestScript {
-  index(req, res) {
-    UProfile("000000000000000")
-    .then(results => res.status(200).json(results))
-    .catch(err => res.status(500).json(err))
-  }
-}
-
+```js
+[
+  "000000631",
+  "111111631",
+  "222222631"
+]
 ```
 
-###### Example 2 - Setting a different default template
-Here I will show how to set a new template and use it as default
+##### Body Emails
 
-```javascript
-const UProfile = require('ibm-uprofile')({
-  uid: "userId",
-  name: "nameDisplay",
-  country: "address.business.country",
-  email: "mail.0"
-}, debug)
-
-class TestScript {
-  index(req, res) {
-    UProfile("000000000000000")
-    .then(results => res.status(200).json(results))
-    .catch(err => res.status(500).json(err))
-  }
-}
-
+```js
+[
+  "email@ibm.com",
+  "email1@br.ibm.com",
+  "email2@ibm.com"
+]
 ```
 
-###### Example 3 - Setting a template on the request
-Here I will show how to set a new template only when you execute the search
+> **PS:** You can use one or another but you can't search by CNUM and EMAIL at the same time.
+> The API will search the type it begin with, the other will be ignored.
 
-```javascript
-const UProfile = require('ibm-uprofile')()
+## Methods
 
-class TestScript {
-  index(req, res) {
-    let customTemplate = {
-      uid: "userId",
-      name: "nameDisplay",
-    }
+Here is the list of the available methods for this module
 
-    UProfile("000000000000000", customTemplate)
-    .then(results => res.status(200).json(results))
-    .catch(err => res.status(500).json(err))
-  }
+### UProfile.team(CNUM[,options])
+
+Fetch the information regarding the user team. It will fetch the international and local hierarchical tree.
+
+#### Usage
+
+```js
+const UProfile = require('ibm-uprofile')(debug) // debug [true/false] will log more stuff to the stdout
+
+// Await / Async
+try {
+  const user = await UProfile.team("000000631")
+  console.log(user)
+} catch (err) {
+  console.log(err)
 }
 
+// Traditional Promise
+UProfile.team("000000631")
+  .then(user => console.log(user))
+  .catch(err => console.log(err))
 ```
 
-###### Example 4 - Setting a template on the request and using a default template
-Here I will show how to set a new template as default and make 2 search with different templates
-```javascript
-const UProfile = require('ibm-uprofile')({
-  uid: "userId",
-  name: "nameDisplay",
-  country: "address.business.country",
-  email: "mail.0"
-})
+#### Response Schema - UserTeamObject
 
-class TestScript {
-  index(req, res) {
-    let customTemplate = {
-      uid: "userId",
-      name: "nameDisplay",
-    }
-
-    var promises = [
-      UProfile("000000000000000")
-      UProfile("000000000000000", customTemplate)
-    ]
-
-    Promise.all(promises)
-    .then(results => res.status(200).json(results))
-    .catch(err => res.status(500).json(err))
-  }
-}
-
-```
-
-###### Example 4 - Force to ignore a custom default template
-Here I will show how to ignore a custom template previously specified
-```javascript
-const UProfile = require('ibm-uprofile')({
-  uid: "userId",
-  name: "nameDisplay",
-  country: "address.business.country",
-  email: "mail.0"
-})
-
-class TestScript {
-  index(req, res) {
-    UProfile("000000000000000", "default")
-    .then(results => res.status(200).json(results))
-    .catch(err => res.status(500).json(err))
-  }
-}
-
-```
-
-## Custom Templates
-Basically there is no restriction about the properties you choose (besides javascript restrictions of course). The restriction is related with the values of these properties, bellow follows the list of the allowed values:
-
-Properties  | Type
---- | ---
-modifiedDate  |  Number
-userId  |  String
-typeId  |  String
-active  |  Boolean
-address | Object
-address.business  | Object
-address.business.zip  |  String
-address.business.locality |  String
-address.business.state  |  String
-address.business.country  |  String
-address.business.address  |  Array
-address.business.location |  String
-address.business.stateCo  |  String
-c |  String
-dn  |  String
-callupName  |  String
-co  |  String
-cn  |  Array
-costCenter  |  String
-courtesyTitle |  String
-dept  | Object
-dept.code |  String
-div |  String
-employeeCountryCode |  String
-notesMailDomain |  String
-employeeType  | Object
-employeeType.code |  String
-employeeType.isManager  |  Boolean
-employeeType.isEmployee |  Boolean
-employeeType.title  |  String
-glTeamLead  |  String
-hrActive  |  String
-hrOrganizationCode  |  String
-legalEntity | Object
-legalEntity.code  |  String
-legalEntity.name  |  String
-legalEntity.groupCode |  String
-legalEntity.groupId |  String
-mail  |  Array
-manager |  String
-managerPSC  |  String
-name. | Object
-name.first  |  String
-name.last |  String
-nameFull  |  String
-notesEmail  |  String
-notesShortName  |  String
-org.  | Object
-org.code  |  String
-org.group |  String
-org.unit  |  String
-org.title |  String
-preferredIdentity |  String
-psc |  String
-role  |  String
-serial  |  String
-telephone | Object
-telephone.office  |  String
-telephone.mobile  |  String
-telephone.tieline |  String
-telephone.itn |  String
-telephone.alternate |  String
-timeZone  |  String
-timeZoneCode  |  String
-uid |  String
-workLocation  | Object
-workLocation.code |  String
-workLocation.building |  String
-workLocation.floor  |  String
-workLocation.office |  String
-imt |  String
-iot |  String
-languages |  Array
-preferredContactMethod  |  String
-nameDisplay |  String
-alternateLastName |  String
-
-> **Importante:** All properties of type `Array` allow you to define the position you want to return, to do that you just need to add `.Index` at the end. *(e.g.: `mail.0` to retrieve the position 0 of the array)* <br />
-**PS:** it won't add any value if the index does not exist.
-
-## About IBM-Unified-Profile API
-I'm didn't found any documentation about the unified profile, so here is what I have so far:<br /><br />
-
-**URL:** https://w3-services1.w3-969.ibm.com/myw3/unified-profile/v1/docs/instances/master?userId= `userUID`<br />
-**Response**<br />
-```javascript
+```js
 {
-    "modifiedDate": <Number>,
-    "userId": <String>,
-    "typeId": <String>,
-    "active": <Boolean>,
-    "content": {
-      "identity_info": {
+  "uid": String,
+  "functional": {
+    "leadership": [
+      {
+        "uid": String,
+        "preferredIdentity": String,
+        "name": {
+          "last": String,
+          "first": String
+        },
+        "nameFull": String,
+        "role": String,
+        "dept": {
+          "code": String
+        },
+        "isEmployee": Boolean,
+        "isManager": Boolean,
+        "employeeType": {
+          "isEmployee": Boolean,
+          "isManager": Boolean,
+          "title": String,
+          "code": String
+        },
+        "legalEntity": {
+          "groupCode": String,
+          "groupId": String,
+          "name": String,
+          "code": String
+        },
         "address": {
           "business": {
-            "zip": <String>,
-            "locality": <String>,
-            "state": <String>,
-            "country": <String>,
-            "address": [<String>],
-            "location": <String>,
-            "stateCo": <String>
+            "country": String,
+            "locality": String,
+            "state": String,
+            "zip": String,
+            "location": String,
+            "stateCo": String,
+            "address": [
+              String
+            ]
           }
         },
-        "c": <String>,
-        "dn": <String>,
-        "callupName": <String>,
-        "co": <String>,
-        "cn": [<String>],
-        "costCenter": <String>,
-        "courtesyTitle": <String>,
-        "dept": {
-          "code": <String>
-        },
-        "div": <String>,
-        "employeeCountryCode": <String>,
-        "notesMailDomain": <String>,
-        "employeeType": {
-          "code": <String>,
-          "isManager": <Boolean>,
-          "isEmployee": <Boolean>,
-          "title": <String>
-        },
-        "glTeamLead": <String>,
-        "hrActive": <String>,
-        "hrOrganizationCode": <String>,
-        "legalEntity": {
-          "code": <String>,
-          "name": <String>,
-          "groupCode": <String>,
-          "groupId": <String>
-        },
-        "mail": [<String>],
-        "manager": <String>,
-        "managerPSC": <String>,
-        "name": {
-          "first": <String>,
-          "last": <String>
-        },
-        "nameFull": <String>,
-        "notesEmail": <String>,
-        "notesShortName": <String>,
-        "org": {
-          "code": <String>,
-          "group": <String>,
-          "unit": <String>,
-          "title": <String>
-        },
-        "preferredIdentity": <String>,
-        "psc": <String>,
-        "role": <String>,
-        "serial": <String>,
         "telephone": {
-          "office": <String>,
-          "mobile": <String>,
-          "tieline": <String>,
-          "itn": <String>,
-          "alternate": <String>
+          "itn": String,
+          "mobile": String,
+          "office": String,
+          "tieline": String
         },
-        "timeZone": <String>,
-        "timeZoneCode": <String>,
-        "uid": <String>,
-        "workLocation": {
-          "code": <String>,
-          "building": <String>,
-          "floor": <String>,
-          "office": <String>
-        },
-        "imt": <String>,
-        "iot": <String>,
-        "languages": [<String>],
-        "preferredContactMethod": <String>,
-        "nameDisplay": <String>,
-        "alternateLastName": <String>
+        "notesEmail": String,
+        "sAMAccountName": String,
+        "preferredSlackId": String,
+        "preferredSlackUsername": String,
+        "conferenceUrl": String
       }
-    }
+    ]
+    "peers": [{ ... }]
+  },
+  "incountry": {
+    "leadership": [{ ... }],
+    "peers": [{ ... }]
   }
-```
-
->**PS:** Some properties may or may not appear, it depends from the user information on bluepages.
-
-## Errors
-Follow the list of errors that should be present if something went wrong. For all error the module will return an object as below:
-```javascript
-{
-	code: <Number>,
-	name: <String>,
-	message: <String>,
-	stack: <Whatever comes from the error, mostly will be an Object>
 }
 
+//PS: [{ ... }] Means the object is the same as before.
 ```
 
-| Code    | Name            | Message                             | Description
-| ------  | --------------- | ----------------------------------- | ---
-| 400     | InvalidTemplate | INVALID_TEMPLATE_TYPE               | Template is not Object / Array / String `"Default"`
-| 400     | InvalidTemplate | INVALID_PROPERTY_ `PROPERTY_NAME`   | A property invalid characters (allowed only Alphanumeric and dots)
-| `<500>` | ServerError     | REQUEST_ERROR                       | For some reason the http request could not be completed
-| 500     | ServerError     | NOT_IN_THE_VPN                      | You are trying to reach the bluepages server but you aren't in the VPN
-| 404     | ServerError     | USER_NOT_FOUND                      | The UID used to search on the API was not found
-| 500     | Unknown         | SOMETHING_WENT_WRONG                | I have no clue... Check the stack and if needed open an issue.
+### Uprofile.skills(CNUM[,options])
 
+Fetch the skillset of the user it also retrieve the badges and other stuff related with the user skills.
+
+#### Usage
+
+```js
+const UProfile = require('ibm-uprofile')(debug) // debug [true/false] will log more stuff to the stdout
+
+// Await / Async
+try {
+  const user = await UProfile.skills("000000631")
+  console.log(user)
+} catch (err) {
+  console.log(err)
+}
+
+// Traditional Promise
+UProfile.skills("000000631")
+  .then(user => console.log(user))
+  .catch(err => console.log(err))
+```
+
+#### Response Schema - UserSkillsObject
+
+```js
+{
+  "jobRoles": [
+    {
+      "JR_ID": String,
+      "jobRole": String,
+      "primary": Boolean,
+      "skillSets": [
+        {
+          "JRSS_ID": String,
+          "skillSet": String,
+          "primary": Boolean
+        },
+        {
+          "JRSS_ID": String,
+          "skillSet": String
+        },
+        {
+          "JRSS_ID": String,
+          "skillSet": String
+        },
+        {
+          "JRSS_ID": String,
+          "skillSet": String
+        },
+        {
+          "JRSS_ID": String,
+          "skillSet": String
+        },
+        {
+          "JRSS_ID": String,
+          "skillSet": String
+        }
+      ]
+    },
+    {
+      "JR_ID": String,
+      "jobRole": String,
+      "skillSets": [
+        {
+          "JRSS_ID": String,
+          "skillSet": String
+        }
+      ]
+    }
+  ],
+  "expertiseSummary": String,
+  "primaryJobCategory": {
+    "id": String,
+    "name": String
+  },
+  "secondaryJobCategory": {
+    "id": String,
+    "name": String
+  },
+  "certifications": {
+    "badges": [
+      {
+        "badgeId": String,
+        "badgeName": String,
+        "badgeDescription": String,
+        "badgeImageUrl": String,
+        "issueId": String,
+        "issueDate": String,
+        "badgeUrl": String,
+        "publicUrl": String
+      },
+      {
+        "badgeId": String,
+        "badgeName": String,
+        "badgeDescription": String,
+        "badgeImageUrl": String,
+        "issueId": String,
+        "issueDate": String,
+        "badgeUrl": String,
+        "publicUrl": String
+      }
+    ]
+  },
+  "linkedIn": {
+    "memberToken": String,
+    "url": String,
+    "enabled": Boolean
+  },
+  "uid": String
+}
+
+// PS: Not all the information above may be available since it depends on the user update.
+```
+
+### Uprofile.info(CNUM[,options])
+
+Fetch the user profile from the bluepages.
+
+#### Usage
+
+Can consult one or more than one user.
+
+__IMPORTANT__
+
+You can only search one type [CNUM/EMAIL] at time, if you try put both type in the same list will will return only the results from the first item of the list.
+
+
+##### Single Search
+
+```js
+const UProfile = require('ibm-uprofile')(debug) // debug [true/false] will log more stuff to the stdout
+
+// Await / Async
+try {
+  const user = await UProfile.info("000000631")
+  console.log(user)
+} catch (err) {
+  console.log(err)
+}
+
+// Traditional Promise
+UProfile.info("000000631")
+  .then(user => console.log(user))
+  .catch(err => console.log(err))
+```
+
+###### Response Schema - UserInfoObject
+
+```js
+{
+  "address": {
+    "business": {
+      "country": String,
+      "locality": String,
+      "state": String,
+      "zip": String,
+      "location": String,
+      "stateCo": String,
+      "address": [
+        String
+      ]
+    }
+  },
+  "backup": {
+    "backupCountryCode": String,
+    "backupSerialNumber": String,
+    "uid": String
+  },
+  "dept": {
+    "code": String
+  },
+  "employeeType": {
+    "isEmployee: Boolean,
+    "isManager: Boolean,
+    "title": String,
+    "code": String
+  },
+  "legalEntity": {
+    "groupCode": String,
+    "groupId": String,
+    "name": String,
+    "code": String
+  },
+  "name": {
+    "first": String,
+    "last": String
+  },
+  "oooSettings": {
+    "message: Boolean,
+    "date: Boolean
+  },
+  "org": {
+    "group": String,
+    "title": String,
+    "unit": String,
+    "code": String
+  },
+  "telephone": {
+    "itn": String,
+    "mobile": String,
+    "office": String,
+    "tieline": String
+  },
+  "workLocation": {
+    "building": String,
+    "code": String,
+    "campusID": String
+  },
+  "cn": [
+    String
+  ],
+  "languages": [
+    String
+  ],
+  "mail": [
+    String
+  ],
+  "alternateLastName": String,
+  "c": String,
+  "callupName": String,
+  "co": String,
+  "costCenter": String,
+  "courtesyTitle": String,
+  "createdDate": String,
+  "div": String,
+  "dn": String,
+  "employeeCountryCode": String,
+  "entryType": String,
+  "functionalManagerUid": String,
+  "hrActive": String,
+  "hrOrganizationCode": String,
+  "importantContactInfo": String,
+  "imt": String,
+  "inCountryManagerUid": String,
+  "iot": String,
+  "manager": String,
+  "managerPSC": String,
+  "nameDisplay": String,
+  "nameFull": String,
+  "notesEmail": String,
+  "notesMailDomain": String,
+  "notesMailFile": String,
+  "notesMailServer": String,
+  "notesShortName": String,
+  "preferredContactMethod": String,
+  "preferredIdentity": String,
+  "preferredLanguage": String,
+  "preferredSlackId": String,
+  "preferredSlackUsername": String,
+  "profileLastUpdated": String,
+  "pronunciation": String,
+  "psc": String,
+  "role": String,
+  "sAMAccountName": String,
+  "serial": String,
+  "startDate": String,
+  "timeZone": String,
+  "timeZoneCode": String,
+  "uid": String,
+  "workdayWorkerID": String,
+  "workerId": String,
+  "workplaceIndicator": String,
+  "conferenceUrl": String
+}
+```
+
+##### Multiple Search
+
+This module allow the application to query large amount of data, although the UnifiedProfile API currently has a limitation of 7873 characters in the url. IT won't happen here.
+
+To create a way around it I will calculate the quantity of chars in the URL after the encode and perform several chunks below the cap running asynchronously multiple query into the UnifiedProfile.
+
+This way, the limitation is transparent when using this module even if it still there.
+![image](https://camo.githubusercontent.com/5c9a73c63b19286025f4d72a50690af51966f6ff535783c23aa3746a3a5c9447/68747470733a2f2f6d656469612e67697068792e636f6d2f6d656469612f58524231756632463962474f412f67697068792e676966)
+
+Below follow the example about how to use it:
+
+```js
+const UProfile = require('ibm-uprofile')(debug) // debug [true/false] will log more stuff to the stdout
+
+// Await / Async
+try {
+  const user = await UProfile.info(["000000631", "111111631", "222222631"])
+  console.log(user)
+} catch (err) {
+  console.log(err)
+}
+
+// Traditional Promise
+UProfile.info(["000000631", "111111631", "222222631" ])
+  .then(user => console.log(user))
+  .catch(err => console.log(err))
+```
+
+###### Response Schema - `[UserInfoObject]`
+
+```js
+[
+  { ... },
+  { ... }
+]
+
+```
+The objects within the array is the same as `UserInfoObject`
+
+
+### Uprofile.all(CNUM[,options])
+
+Basically put together the result of the 3 APIs before into a single object.
+
+#### Usage
+
+```js
+const UProfile = require('ibm-uprofile')(debug) // debug [true/false] will log more stuff to the stdout
+
+// Await / Async
+try {
+  const user = await UProfile.all("000000631")
+  console.log(user)
+} catch (err) {
+  console.log(err)
+}
+
+// Traditional Promise
+UProfile.all("000000631")
+  .then(user => console.log(user))
+  .catch(err => console.log(err))
+```
+
+#### Response Schema - all (Object)
+
+```js
+{
+  "identity_info": UserInfoObject
+  "team_info": UserTeamObject
+  "profile_extended": UserSkillsObject
+}
+```
+
+## About IBM-Unified-Profile API
+
+I coun't find any detailed information regarding the APIs, like limitation and stuff like that.
+
+Here is the link regarding all APIs => https://w3.ibm.com/w3publisher/bluepages-ui-support/unified-profile-apis
+
+This module is not related with the APIs, it only uses the URLs from there and provide a transparent way to query users from it.
 
 ## Authors
 
 * **Night** - [Niightly](https://github.com/niightly)
 
+## Special Thanks
+
+I would like to express here my gratitude to [Matt Funk](https://w3.ibm.com/bluepages/profile.html?email=mfunk@us.ibm.com) (Product Owner for BluePages & User Profile) for the patience to listen to the results of my tests and problems I have faced regarding the new version of the APIs.
+
 ## License
 
-This project is licensed under the MIT License (whatever it means hahahah) [PS: just kidding, thanks Massachusetts Institute of Technology for this wonderful license]
+This project is licensed under the MIT License (whatever it means hahahah)
+
+>PS: just kidding, thanks Massachusetts Institute of Technology for this wonderful license.
