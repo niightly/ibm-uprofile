@@ -40,7 +40,7 @@ class TestController {
 		let uid = req.params.uid
 
 		try {
-			const response = await UProfile.all(uid, { ignore_404_error: false })
+			const response = await UProfile.all(uid, { break_on_404: false })
 			res.status(200).json(response)
 		} catch (err) {
 			res.status(500).json(err)
@@ -51,7 +51,7 @@ class TestController {
 		let uids = req.body
 
 		try {
-			const response = await UProfile.info(uids, { headers: false, ignore_404_error: false })
+			const response = await UProfile.info(uids, { headers: false, break_on_404: false })
 			res.status(200).json(response)
 		} catch (err) {
 			res.status(500).json(err)

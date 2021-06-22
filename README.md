@@ -26,6 +26,7 @@ Below follow the list of samples for testing
 * GET `http://localhost:3000/:uid/info`
 * GET `http://localhost:3000/:uid/skill`
 * GET `http://localhost:3000/:uid/team`
+* GET `http://localhost:3000/:uid/all`
 * POST `http://localhost:3000/users`
 
 ##### Body UIDs
@@ -487,6 +488,15 @@ UProfile.all("000000631")
   "profile_extended": UserSkillsObject
 }
 ```
+
+### Options
+
+Currently there are a small set of options, but will help you to customize a little bit the API:
+
+| attribute    | Purpose                                                                                                                                                 |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| break_on_404 | If true, will throw an error 404 error if the user do not match. **Default: false**<br>This option is ignored when you are searching more than one user |
+| headers      | If true, will bring the headers from the Unified Profile. **Default: false**                                                                            |
 
 ## About IBM-Unified-Profile API
 

@@ -20,8 +20,9 @@ class UProfile {
 	}
 
 	setOptions(options) {
+		let default_options = { headers: false, break_on_404: false }
 		if (Object.keys(options).length === 0) { return }
-		this.options = options
+		this.options = { ...default_options, ...options }
 	}
 
 	_uri(type, query) {
@@ -156,10 +157,10 @@ class UProfile {
 
 	async _fetch(type, users) {
 		try {
-			const response = await axios.get(this._uri(type, users), { validateStatus: (status) => status < 500 })
+			const response = await axios.get(this._uri(type, users), { validateStatus: (status) => (this.options.break_on_404) ? false : status < 500 })
 			this._display_response_error(type, users, response)
 
-			if (response.status === 404 && !this.options.ignore_404_error) { throw { code: 404, name: "Entry Not Found", message: "ENTRY_NOT_FOUND", stack: response.data } }
+			if (response.status === 404 && this.options.break_on_404) { return }
 			return this._response(users, response.data)
 		} catch (err) {
 			throw err
