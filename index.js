@@ -6,7 +6,8 @@ class UProfile {
 		this.urls = {
 			team: 'https://unified-profile-api.us-south-k8s.intranet.ibm.com/v3/profiles/{USER}/teamResolved',
 			extended: 'https://unified-profile-api.us-south-k8s.intranet.ibm.com/v3/profiles/{USER}/profile_extended',
-			profile: 'https://unified-profile-api.us-south-k8s.intranet.ibm.com/v3/profiles/{USER}',
+			profile: 'https://unified-profile-api.us-south-k8s.intranet.ibm.com/v3/profiles/{USER}/profile',
+			profiles: 'https://unified-profile-api.us-south-k8s.intranet.ibm.com/v3/profiles/{USER}',
 			all: 'https://unified-profile-api.us-south-k8s.intranet.ibm.com/v3/profiles/{USER}/profile_combined',
 		}
 
@@ -26,7 +27,7 @@ class UProfile {
 	}
 
 	_uri(type, query) {
-		if (type === 'profile') {
+		if (type === 'profiles') {
 			if (!Array.isArray(query)) { query = [query] }
 			query = query.join(',')
 		}
@@ -119,8 +120,7 @@ class UProfile {
 				body = await this._fetch('profile', user)
 			}
 
-			if (this.options.headers) { return (Array.isArray(user)) ? body : body[0] }
-			return (Array.isArray(user)) ? body.map(item => item.content) : body[0].content
+			return this._transpile_body(this.options.headers, body, user)
 		} catch (err) {
 			throw err
 		}
@@ -138,11 +138,32 @@ class UProfile {
 		return chunks
 	}
 
+	_transpile_body(headers, body, user) {
+		if (!Array.isArray(user)) { return (headers) ? body : body.content }
+
+		if (Array.isArray(body)) {
+			return body.reduce((array, item) => this.retrieve_body_profiles(headers, item.profiles, array), [])
+		} else {
+			return this.retrieve_body_profiles(headers, body.profiles, [])
+		}
+	}
+
+	retrieve_body_profiles(headers, profiles, array) {
+		if (!Array.isArray(profiles)) {
+			const value = (headers) ? profiles : profiles.content
+			array.push(value)
+		} else {
+			profiles.map(p => (headers) ? array.push(p) : array.push(p.content))
+		}
+
+		return array
+	}
+
 	async _multi_fetch(users) {
 		try {
 			let response = await Promise.allSettled(this._chunks(users).map((chunk, i) => {
-				if (this.debug) { console.log(`CHUNK ${i + 1} TOTAL (chars):`, encodeURI(this._uri('profile', chunk)).length) }
-				return axios.get(this._uri('profile', chunk), { validateStatus: (status) => status < 500 })
+				if (this.debug) { console.log(`CHUNK ${i + 1} TOTAL (chars):`, encodeURI(this._uri('profiles', chunk)).length) }
+				return axios.get(this._uri('profiles', chunk), { validateStatus: (status) => status < 500 })
 			}))
 
 			response = response.map(r => r.value.data)

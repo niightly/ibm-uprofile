@@ -5,9 +5,10 @@ class TestController {
 
 	async index(req, res) {
 		let uid = req.params.uid
+		let headers = req.query.headers == 'true'
 
 		try {
-			const response = await UProfile.info(uid, { ignore_404_error: false })
+			const response = await UProfile.info(uid, { headers, break_on_404: false })
 			res.status(200).json(response)
 		} catch (err) {
 			res.status(500).json(err)
@@ -16,9 +17,10 @@ class TestController {
 
 	async skills(req, res) {
 		let uid = req.params.uid
+		let headers = req.query.headers == 'true'
 
 		try {
-			const response = await UProfile.skills(uid, { ignore_404_error: false })
+			const response = await UProfile.skills(uid, { headers, break_on_404: false })
 			res.status(200).json(response)
 		} catch (err) {
 			res.status(500).json(err)
@@ -27,9 +29,10 @@ class TestController {
 
 	async team(req, res) {
 		let uid = req.params.uid
+		let headers = req.query.headers == 'true'
 
 		try {
-			const response = await UProfile.team(uid, { ignore_404_error: false })
+			const response = await UProfile.team(uid, { headers, break_on_404: false })
 			res.status(200).json(response)
 		} catch (err) {
 			res.status(500).json(err)
@@ -38,9 +41,10 @@ class TestController {
 
 	async all(req, res) {
 		let uid = req.params.uid
+		let headers = req.query.headers == 'true'
 
 		try {
-			const response = await UProfile.all(uid, { break_on_404: false })
+			const response = await UProfile.all(uid, { headers, break_on_404: false })
 			res.status(200).json(response)
 		} catch (err) {
 			res.status(500).json(err)
@@ -49,9 +53,10 @@ class TestController {
 
 	async users(req, res) {
 		let uids = req.body
+		let headers = req.query.headers == 'true'
 
 		try {
-			const response = await UProfile.info(uids, { headers: false, break_on_404: false })
+			const response = await UProfile.info(uids, { headers, break_on_404: false })
 			res.status(200).json(response)
 		} catch (err) {
 			res.status(500).json(err)
